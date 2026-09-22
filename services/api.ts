@@ -76,7 +76,37 @@ export const funciones = {
     apiFetch(`/funciones?peliculaId=${peliculaId}`),
 
   obtenerAsientos: (funcionId: number | string): Promise<AsientoApi[]> =>
-    apiFetch(`/funciones/${funcionId}/asientos`)
+    apiFetch(`/funciones/${funcionId}/asientos`),
+
+  obtenerTodo: (): Promise<FuncionApi[]> => apiFetch('/funciones'),
+
+  crear: (datos: DatosFuncion): Promise<FuncionApi> =>
+    apiFetch('/funciones', { method: 'POST', body: JSON.stringify(datos) }),
+
+  editar: (id: number, datos: DatosFuncion): Promise<FuncionApi> =>
+    apiFetch(`/funciones/${id}`, { method: 'PUT', body: JSON.stringify(datos) }),
+
+  eliminar: (id: number): Promise<unknown> =>
+    apiFetch(`/funciones/${id}`, { method: 'DELETE' })
+};
+
+export type DatosSala = Omit<SalaApi, 'id'>;
+
+export type DatosFuncion = Omit<FuncionApi, 'id' | 'sala'> & {
+  sala: { id: number };
+};
+
+export const salas = {
+  obtenerTodo: (): Promise<SalaApi[]> => apiFetch('/salas'),
+
+  crear: (datos: DatosSala): Promise<SalaApi> =>
+    apiFetch('/salas', { method: 'POST', body: JSON.stringify(datos) }),
+
+  editar: (id: number, datos: DatosSala): Promise<SalaApi> =>
+    apiFetch(`/salas/${id}`, { method: 'PUT', body: JSON.stringify(datos) }),
+
+  eliminar: (id: number): Promise<unknown> =>
+    apiFetch(`/salas/${id}`, { method: 'DELETE' })
 };
 
 export interface SnackPedido {
