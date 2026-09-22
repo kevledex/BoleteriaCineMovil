@@ -69,6 +69,14 @@ export default function AsientosScreen({ route, navigation }: Props) {
       .obtenerMapaAsientos(funcionId)
       .then(mapa => setAsientos(mapa))
       .finally(() => setCargando(false));
+
+    asientosService.conectarWebSocket(funcionId, evento => {
+      setAsientos(actuales =>
+        actuales.map(item => (item.id === evento.id ? { ...item, estado: evento.estado } : item))
+      );
+    });
+
+    return () => asientosService.desconectar();
   }, [funcionId]);
 
   useEffect(() => {
@@ -111,14 +119,6 @@ export default function AsientosScreen({ route, navigation }: Props) {
     setTimeout(() => setAviso(''), 3000);
   };
 
-  const actualizarMapa = async (mapa: Asiento[]) => {
-    setAsientos(mapa);
-    await asientosService.guardarMapaAsientos(
-      funcionId,
-      mapa
-    );
-  };
-
   const toggleAsiento = async (asiento: Asiento) => {
     if (asiento.estado === 'OCUPADO' || asiento.estado === 'RESERVADO') return;
 
@@ -127,13 +127,15 @@ export default function AsientosScreen({ route, navigation }: Props) {
         ? 'SELECCIONADO'
         : 'LIBRE';
 
-    const mapa = asientos.map(item =>
-      item.id === asiento.id
-        ? { ...item, estado: nuevoEstado }
-        : item
+    setAsientos(actuales =>
+      actuales.map(item =>
+        item.id === asiento.id
+          ? { ...item, estado: nuevoEstado }
+          : item
+      )
     );
 
-    await actualizarMapa(mapa);
+    await asientosService.enviarAccionAsiento(funcionId, asiento.id, nuevoEstado);
 
     if (
       nuevoEstado === 'SELECCIONADO' &&
@@ -154,16 +156,20 @@ export default function AsientosScreen({ route, navigation }: Props) {
   };
 
   async function liberarSeleccion(mensaje: string) {
-    const mapa = asientos.map(asiento =>
-      asiento.estado === 'SELECCIONADO'
-        ? {
-            ...asiento,
-            estado: 'LIBRE' as const
-          }
-        : asiento
+    const idsSeleccionados = seleccionados.map(asiento => asiento.id);
+
+    setAsientos(actuales =>
+      actuales.map(asiento =>
+        idsSeleccionados.includes(asiento.id)
+          ? { ...asiento, estado: 'LIBRE' as const }
+          : asiento
+      )
     );
 
-    await actualizarMapa(mapa);
+    for (const id of idsSeleccionados) {
+      await asientosService.enviarAccionAsiento(funcionId, id, 'LIBRE');
+    }
+
     setTiempo(300);
     mostrarAviso(mensaje);
   }

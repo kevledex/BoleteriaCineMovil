@@ -1,5 +1,7 @@
 const API_HOST = '192.168.137.1';
 export const API_URL = `http://${API_HOST}:8080/api`;
+// Endpoint crudo de WebSocket (sin SockJS: react-native-web-socket ya lo soporta nativo).
+export const WS_URL = `ws://${API_HOST}:8080/ws/websocket`;
 
 async function apiFetch(path: string, options: RequestInit = {}) {
   const respuesta = await fetch(`${API_URL}${path}`, {
