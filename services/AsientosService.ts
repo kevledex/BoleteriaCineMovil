@@ -14,6 +14,7 @@ const CLAVE_CLIENTE_ID = 'cine:clienteId';
 class AsientosService {
   private stompClient: Client | null = null;
   private clienteIdCache: string | null = null;
+  private clienteIdPromesa: Promise<string> | null = null;
 
   async obtenerMapaAsientos(funcionId: string): Promise<Asiento[]> {
     const clienteId = await this.obtenerOCrearClienteId();
@@ -31,13 +32,23 @@ class AsientosService {
   ): Promise<void> {
     const clienteId = await this.obtenerOCrearClienteId();
 
+    console.log(`[WS] conectando a ${WS_URL} (clienteId=${clienteId}, funcion=${funcionId})`);
+
     this.stompClient = new Client({
       brokerURL: WS_URL,
+      forceBinaryWSFrames: true,
+      appendMissingNULLonIncoming: true,
+      webSocketFactory: () => new WebSocket(WS_URL),
       reconnectDelay: 5000,
+      debug: mensaje => console.log('[WS debug]', mensaje),
       onConnect: () => {
+        console.log('[WS] conectado, suscribiendo a /topic/sala/' + funcionId);
+
         this.stompClient?.subscribe(`/topic/sala/${funcionId}`, (mensaje: Message) => {
           if (!mensaje.body) return;
           const evento = JSON.parse(mensaje.body) as EventoAsientoWS;
+          console.log('[WS] evento recibido:', evento);
+
           onUpdate({
             id: evento.id,
             estado: this.traducirEstado(evento.estado, evento.clienteId, clienteId)
@@ -45,7 +56,13 @@ class AsientosService {
         });
       },
       onStompError: frame => {
-        console.error('Error STOMP:', frame.headers['message']);
+        console.error('[WS] Error STOMP:', frame.headers['message'], frame.body);
+      },
+      onWebSocketError: evento => {
+        console.error('[WS] Error de WebSocket (no llegó a conectar):', evento);
+      },
+      onDisconnect: () => {
+        console.log('[WS] Desconectado');
       }
     });
 
@@ -57,9 +74,13 @@ class AsientosService {
     idAsiento: string,
     estado: 'SELECCIONADO' | 'LIBRE'
   ): Promise<void> {
-    if (!this.stompClient?.connected) return;
+    if (!this.stompClient?.connected) {
+      console.warn('[WS] Se intentó enviar una acción sin conexión activa todavía:', idAsiento, estado);
+      return;
+    }
 
     const clienteId = await this.obtenerOCrearClienteId();
+    console.log('[WS] enviando acción:', { funcionId, idAsiento, estado, clienteId });
 
     this.stompClient.publish({
       destination: '/app/asiento/seleccionar',
@@ -72,9 +93,6 @@ class AsientosService {
     this.stompClient = null;
   }
 
-  // El backend nunca manda "SELECCIONADO": manda RESERVADO + el clienteId de quien
-  // lo tomó. Si es el mismo clienteId de este dispositivo, es mi propia selección;
-  // si no, queda bloqueado para mí como reservado por otra persona.
   private traducirEstado(
     estado: Asiento['estado'],
     clienteIdDelEvento: string | null | undefined,
@@ -85,17 +103,22 @@ class AsientosService {
       : estado;
   }
 
-  private async obtenerOCrearClienteId(): Promise<string> {
-    if (this.clienteIdCache) return this.clienteIdCache;
+  private obtenerOCrearClienteId(): Promise<string> {
+    if (this.clienteIdCache) return Promise.resolve(this.clienteIdCache);
+    if (this.clienteIdPromesa) return this.clienteIdPromesa;
 
-    let clienteId = await AsyncStorage.getItem(CLAVE_CLIENTE_ID);
-    if (!clienteId) {
-      clienteId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-      await AsyncStorage.setItem(CLAVE_CLIENTE_ID, clienteId);
-    }
+    this.clienteIdPromesa = (async () => {
+      let clienteId = await AsyncStorage.getItem(CLAVE_CLIENTE_ID);
+      if (!clienteId) {
+        clienteId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+        await AsyncStorage.setItem(CLAVE_CLIENTE_ID, clienteId);
+      }
 
-    this.clienteIdCache = clienteId;
-    return clienteId;
+      this.clienteIdCache = clienteId;
+      return clienteId;
+    })();
+
+    return this.clienteIdPromesa;
   }
 }
 

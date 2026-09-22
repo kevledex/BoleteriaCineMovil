@@ -100,8 +100,6 @@ export default function AsientosScreen({ route, navigation }: Props) {
     }
   }, [tiempo, seleccionados.length]);
 
-  // Intercepta cualquier forma de salir (botón físico, gesto de swipe, o el
-  // link de "Volver"), no solo un botón visible, igual que el canDeactivate del web.
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', e => {
       if (seleccionados.length === 0) return;

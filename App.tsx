@@ -10,9 +10,6 @@ import { colores } from './styles/estilosGlobal';
 
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
-// La barra de navegación se oculta en las pantallas del flujo de compra
-// (selección de asientos y pago) para mantener el foco, igual que hacen
-// las apps de cine "premium".
 const PANTALLAS_SIN_BARRA = ['Asientos', 'Confirmacion', 'Login'];
 
 export default function App() {

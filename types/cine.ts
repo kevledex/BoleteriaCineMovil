@@ -44,7 +44,6 @@ export interface CompraActiva {
   dulceria: ItemDulceriaResumen[];
 }
 
-// Forma real que devuelve el backend en /api/compras/mias (ver EntradaUsuarioDTO).
 export type EntradaConfirmada = EntradaUsuario;
 
 export interface ProductoDulceria {

@@ -55,13 +55,11 @@ export default function AdminScreen({ navigation }: Props) {
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
 
-  // --- Formulario de sala ---
   const [nombreSala, setNombreSala] = useState('');
   const [filas, setFilas] = useState('5');
   const [columnas, setColumnas] = useState('8');
   const [tipoSala, setTipoSala] = useState('STANDARD');
 
-  // --- Formulario de función ---
   const [buscarPelicula, setBuscarPelicula] = useState('');
   const [peliculaSeleccionada, setPeliculaSeleccionada] = useState<Pelicula | null>(null);
   const [mostrarResultados, setMostrarResultados] = useState(false);
