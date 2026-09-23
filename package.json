@@ -10,6 +10,7 @@
     "@stomp/stompjs": "^7.3.0",
     "expo": "~57.0.24",
     "expo-blur": "~57.0.3",
+    "expo-build-properties": "~57.0.21",
     "expo-status-bar": "~57.0.1",
     "lucide-react-native": "^1.47.0",
     "react": "19.2.3",
