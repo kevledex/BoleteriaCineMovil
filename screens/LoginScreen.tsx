@@ -119,9 +119,13 @@ export default function LoginScreen({ navigation }: Props) {
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate('Cartelera')}>
-          <Text style={styles.volver}>Volver a cartelera</Text>
-        </TouchableOpacity>
+        <View style={styles.accesoRegistro}>
+          <Text style={styles.textoCuenta}>¿No tienes una cuenta?</Text>
+
+          <TouchableOpacity onPress={() => navigation.navigate('Registro')}>
+            <Text style={styles.enlaceCuenta}>Regístrate aquí</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );
@@ -205,9 +209,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700'
   },
-  volver: {
+  accesoRegistro: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 5
+  },
+  textoCuenta: {
     color: '#f2c94c',
-    textAlign: 'center',
     fontSize: 14
+  },
+  enlaceCuenta: {
+    color: '#f2c94c',
+    fontSize: 14,
+    fontWeight: '700',
+    textDecorationLine: 'underline'
   }
 });

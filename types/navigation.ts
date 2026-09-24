@@ -14,6 +14,7 @@ export type RootStackParamList = {
   Confirmacion: undefined;
   MisEntradas: undefined;
   Login: undefined;
+  Registro: undefined;
   Admin: undefined;
   Perfil: undefined;
 };

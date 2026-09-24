@@ -6,6 +6,7 @@ import DulceriaScreen from '../screens/DulceriaScreen';
 import ConfirmacionScreen from '../screens/ConfirmacionScreen';
 import MisEntradasScreen from '../screens/MisEntradasScreen';
 import LoginScreen from '../screens/LoginScreen';
+import RegistroScreen from '../screens/RegistroScreen';
 import AdminScreen from '../screens/AdminScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 import { RootStackParamList } from '../types/navigation';
@@ -22,6 +23,7 @@ export default function AppNavigator() {
       }}
     >
       <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Registro" component={RegistroScreen} />
       <Stack.Screen name="Cartelera" component={CarteleraScreen} />
       <Stack.Screen name="Boleteria" component={BoleteriaScreen} />
       <Stack.Screen name="Asientos" component={AsientosScreen} />

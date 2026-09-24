@@ -15,11 +15,39 @@ async function apiFetch(path: string, options: RequestInit = {}) {
   const datos = await respuesta.json().catch(() => null);
 
   if (!respuesta.ok) {
-    const mensaje = datos?.error ?? datos?.mensaje ?? 'Ocurrió un error inesperado';
+    const mensaje = obtenerMensajeError(datos);
     throw new Error(mensaje);
   }
 
   return datos;
+}
+
+function obtenerMensajeError(datos: unknown): string {
+  if (typeof datos === 'string' && datos.trim()) {
+    return datos;
+  }
+
+  if (datos && typeof datos === 'object') {
+    const respuesta = datos as Record<string, unknown>;
+
+    if (typeof respuesta.error === 'string') {
+      return respuesta.error;
+    }
+
+    if (typeof respuesta.mensaje === 'string') {
+      return respuesta.mensaje;
+    }
+
+    const mensajeValidacion = Object.values(respuesta).find(
+      valor => typeof valor === 'string'
+    );
+
+    if (typeof mensajeValidacion === 'string') {
+      return mensajeValidacion;
+    }
+  }
+
+  return 'Ocurrió un error inesperado';
 }
 
 export interface PerfilUsuario {
@@ -31,11 +59,30 @@ export interface PerfilUsuario {
   roles: string[];
 }
 
+export interface RegistroClienteSolicitud {
+  nombre: string;
+  email: string;
+  password: string;
+  telefono: string | null;
+}
+
+export interface RespuestaRegistro {
+  mensaje: string;
+}
+
 export const auth = {
   login: (email: string, password: string): Promise<PerfilUsuario> =>
     apiFetch('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password })
+    }),
+
+  registro: (
+    solicitud: RegistroClienteSolicitud
+  ): Promise<RespuestaRegistro> =>
+    apiFetch('/auth/registro', {
+      method: 'POST',
+      body: JSON.stringify(solicitud)
     }),
 
   logout: (): Promise<unknown> => apiFetch('/auth/logout', { method: 'POST' }),
