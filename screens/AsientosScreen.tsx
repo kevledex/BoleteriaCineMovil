@@ -11,6 +11,19 @@ import { colores, moneda } from '../styles/estilosGlobal';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Asientos'>;
 
+function estiloApoyabrazo(estado: Asiento['estado']) {
+  switch (estado) {
+    case 'SELECCIONADO':
+      return { backgroundColor: colores.dorado };
+    case 'RESERVADO':
+      return { backgroundColor: colores.naranja };
+    case 'OCUPADO':
+      return { backgroundColor: colores.rojo };
+    default:
+      return { backgroundColor: colores.textoSuave };
+  }
+}
+
 export default function AsientosScreen({ route, navigation }: Props) {
   const {
     funcionId,
@@ -356,11 +369,10 @@ export default function AsientosScreen({ route, navigation }: Props) {
                   (asiento, index) => (
                     <View
                       key={asiento.id}
-                      style={
-                        index === 4
-                          ? styles.separacion
-                          : undefined
-                      }
+                      style={[
+                        styles.celdaAsiento,
+                        index === 4 && styles.separacion
+                      ]}
                     >
                       <Pressable
                         disabled={
@@ -386,6 +398,14 @@ export default function AsientosScreen({ route, navigation }: Props) {
                             styles.asientoOcupado
                         ]}
                       >
+                        <View
+                          style={[
+                            styles.apoyabrazo,
+                            styles.apoyabrazoIzquierdo,
+                            estiloApoyabrazo(asiento.estado)
+                          ]}
+                        />
+
                         <Text
                           style={[
                             styles.asientoText,
@@ -396,6 +416,14 @@ export default function AsientosScreen({ route, navigation }: Props) {
                         >
                           {asiento.id.slice(1)}
                         </Text>
+
+                        <View
+                          style={[
+                            styles.apoyabrazo,
+                            styles.apoyabrazoDerecho,
+                            estiloApoyabrazo(asiento.estado)
+                          ]}
+                        />
                       </Pressable>
                     </View>
                   )
@@ -561,14 +589,44 @@ const styles = StyleSheet.create({
   mapa: { marginTop: 18, padding: 10, borderWidth: 1, borderColor: 'rgba(48,57,69,0.7)', borderRadius: 14, backgroundColor: 'rgba(8,13,19,0.6)' },
   fila: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 },
   filaLabel: { width: 18, color: colores.textoSuave, fontWeight: '800', textAlign: 'center' },
-  asientosFila: { flexDirection: 'row', gap: 5, alignItems: 'center' },
-  separacion: { marginLeft: 12 },
-  asiento: { width: 32, height: 38, borderRadius: 8, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
+  asientosFila: { flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 5, marginHorizontal: 4 },
+  celdaAsiento: { flex: 1, maxWidth: 34, alignItems: 'center' },
+  separacion: { marginLeft: 10 },
+  asiento: {
+    width: '100%',
+    aspectRatio: 34 / 40,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    borderBottomLeftRadius: 5,
+    borderBottomRightRadius: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1
+  },
+  apoyabrazo: {
+    position: 'absolute',
+    top: '32%',
+    width: 3,
+    height: '55%',
+    borderRadius: 2,
+    opacity: 0.28
+  },
+  apoyabrazoIzquierdo: { left: -3 },
+  apoyabrazoDerecho: { right: -3 },
   asientoLibre: { backgroundColor: colores.panel, borderColor: colores.borde },
-  asientoSeleccionado: { backgroundColor: colores.dorado, borderColor: colores.dorado },
+  asientoSeleccionado: {
+    backgroundColor: colores.dorado,
+    borderColor: colores.dorado,
+    shadowColor: colores.dorado,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 6,
+    transform: [{ translateY: -2 }]
+  },
   asientoReservado: { backgroundColor: colores.naranja, borderColor: colores.naranja, opacity: 0.65 },
   asientoOcupado: { backgroundColor: colores.rojo, borderColor: colores.rojo, opacity: 0.65 },
-  asientoText: { color: colores.textoSuave, fontSize: 12, fontWeight: '800' },
+  asientoText: { color: colores.textoSuave, fontSize: 11, fontWeight: '800' },
   asientoTextSeleccionado: { color: '#161100' },
   footerBar: { position: 'absolute', left: 0, right: 0, bottom: 0, padding: 10, backgroundColor: '#0d1218', borderTopWidth: 1, borderTopColor: colores.borde },
   resumenTexto: { color: colores.textoSuave, fontSize: 12 },

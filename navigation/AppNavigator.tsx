@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import * as SplashScreen from 'expo-splash-screen';
 import CarteleraScreen from '../screens/CarteleraScreen';
 import BoleteriaScreen from '../screens/BoleteriaScreen';
 import AsientosScreen from '../screens/AsientosScreen';
@@ -10,13 +12,32 @@ import RegistroScreen from '../screens/RegistroScreen';
 import AdminScreen from '../screens/AdminScreen';
 import PerfilScreen from '../screens/PerfilScreen';
 import { RootStackParamList } from '../types/navigation';
+import { useAuth } from '../context/AuthContext';
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
+  const { perfil, cargando } = useAuth();
+
+  useEffect(() => {
+    if (!cargando) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [cargando]);
+
+  if (cargando) return null;
+
+  const rutaInicial: keyof RootStackParamList = !perfil
+    ? 'Login'
+    : perfil.roles.includes('ROLE_ADMIN')
+      ? 'Admin'
+      : 'Cartelera';
+
   return (
     <Stack.Navigator
-      initialRouteName="Login"
+      initialRouteName={rutaInicial}
       screenOptions={{
         headerShown: false,
         animation: 'fade'

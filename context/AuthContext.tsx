@@ -16,8 +16,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    auth
-      .perfil()
+    const limite = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 6000)
+    );
+
+    Promise.race([auth.perfil(), limite])
       .then(setPerfil)
       .catch(() => setPerfil(null))
       .finally(() => setCargando(false));

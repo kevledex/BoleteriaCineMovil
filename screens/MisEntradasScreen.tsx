@@ -1,18 +1,23 @@
 import { useCallback, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Clapperboard } from 'lucide-react-native';
+import { Clapperboard, Download } from 'lucide-react-native';
 import { RootStackParamList } from '../types/navigation';
 import { EntradaConfirmada } from '../types/cine';
 import { compraService } from '../services/CompraService';
+import { facturaService } from '../services/FacturaService';
+import { useAuth } from '../context/AuthContext';
 import { colores, moneda } from '../styles/estilosGlobal';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MisEntradas'>;
 
 export default function MisEntradasScreen({ navigation }: Props) {
+  const { perfil } = useAuth();
   const [entradas, setEntradas] =
     useState<EntradaConfirmada[]>([]);
+  const [generandoFactura, setGenerandoFactura] = useState<number | null>(null);
+  const [errorFacturaId, setErrorFacturaId] = useState<number | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -21,6 +26,22 @@ export default function MisEntradasScreen({ navigation }: Props) {
         .then(setEntradas);
     }, [])
   );
+
+  const verFactura = async (entrada: EntradaConfirmada) => {
+    setErrorFacturaId(null);
+    setGenerandoFactura(entrada.id);
+
+    try {
+      await facturaService.generarYCompartir(entrada, {
+        nombre: perfil?.nombre ?? 'Cliente Metrópoli Cine',
+        email: perfil?.email ?? ''
+      });
+    } catch {
+      setErrorFacturaId(entrada.id);
+    } finally {
+      setGenerandoFactura(null);
+    }
+  };
 
   return (
     <FlatList
@@ -87,6 +108,30 @@ export default function MisEntradasScreen({ navigation }: Props) {
                 : 's'} · Total:{' '}
               {moneda(item.total)}
             </Text>
+
+            <Pressable
+              style={[
+                styles.botonFactura,
+                generandoFactura === item.id && styles.botonFacturaDeshabilitado
+              ]}
+              disabled={generandoFactura === item.id}
+              onPress={() => verFactura(item)}
+            >
+              {generandoFactura === item.id ? (
+                <ActivityIndicator size="small" color={colores.dorado} />
+              ) : (
+                <Download size={16} color={colores.dorado} />
+              )}
+              <Text style={styles.botonFacturaText}>
+                {generandoFactura === item.id ? 'Generando...' : 'Ver factura'}
+              </Text>
+            </Pressable>
+
+            {errorFacturaId === item.id && (
+              <Text style={styles.errorFactura}>
+                No se pudo generar la factura. Inténtalo nuevamente.
+              </Text>
+            )}
           </View>
         </View>
       )}
@@ -139,6 +184,22 @@ const styles = StyleSheet.create({
   info: { gap: 5 },
   pelicula: { color: '#fff', fontSize: 20, fontWeight: '700' },
   linea: { color: '#b8bec6', fontSize: 13, lineHeight: 19 },
+  botonFactura: {
+    marginTop: 5,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 7,
+    borderWidth: 1,
+    borderColor: colores.dorado,
+    backgroundColor: 'rgba(242,201,76,0.08)'
+  },
+  botonFacturaDeshabilitado: { opacity: 0.6 },
+  botonFacturaText: { color: colores.dorado, fontSize: 13, fontWeight: '700' },
+  errorFactura: { color: colores.rojo, fontSize: 12 },
   vacio: { marginTop: 28, padding: 30, alignItems: 'center', borderWidth: 1, borderStyle: 'dashed', borderColor: '#3c4652', borderRadius: 14, backgroundColor: colores.panel },
   vacioTitulo: { marginTop: 10, color: '#fff', fontSize: 18, fontWeight: '700', textAlign: 'center' },
   vacioText: { marginTop: 7, color: colores.textoSuave, fontSize: 13, lineHeight: 20, textAlign: 'center' },
